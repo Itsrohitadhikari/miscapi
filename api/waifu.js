@@ -22,14 +22,12 @@ async function getRandomImage(availableApis) {
   const response = await axios.get(randomApi.url);
 
   let imageUrl;
-  if (randomApi.imageKey.includes('[')) {
-    const keys = randomApi.imageKey.split(/[[\]]/).filter(Boolean);
-    imageUrl = response.data;
-    for (const key of keys) {
-      imageUrl = imageUrl[key];
-    }
-  } else {
-    imageUrl = response.data[randomApi.imageKey];
+  // Split the imageKey path by '.' to handle nested JSON keys
+  const keys = randomApi.imageKey.split(/[[\].]+/).filter(Boolean);
+  
+  imageUrl = response.data;
+  for (const key of keys) {
+    imageUrl = imageUrl[key];
   }
 
   return { image_url: imageUrl, provider: randomApi.provider };
@@ -47,6 +45,7 @@ module.exports = async (req, res) => {
 
     res.status(200).json(imageResponse);
   } catch (error) {
+    console.error('Error:', error);
     res.status(500).json({ error: 'An unexpected error occurred.' });
   }
 };
